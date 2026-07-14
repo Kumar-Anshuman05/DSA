@@ -1,0 +1,65 @@
+import array
+import random
+import time
+
+def generate_large_array(size: int) -> list[int]:
+    """
+    Generates a list of random integers of a given size.
+    Accepts sizes spanning from 10^3 to 10^6.
+    """
+    # Safety boundaries for size allocation
+    if not (1000 <= size <= 1000000):
+        print(f"Warning: Size {size} is outside the standard 10^3 to 10^6 request.")
+        
+    return [random.randint(-size, size) for _ in range(size)]
+
+
+# Master dictionary containing arrays of integers for edge-case testing
+test_suites = {
+    "empty": [],
+    "strictly_increasing": [10, 20, 30, 40, 50, 60, 70, 80],
+    "strictly_decreasing": [80, 70, 60, 50, 40, 30, 20, 10],
+    "odd_length": [45, 12, 89, 34, 67, 90, 21],
+    "even_length": [14, 78, 23, 89, 45, 56, 12, 99],
+    "all_equal_or_duplicates": [5, 5, 5, 5, 5, 5]  # Highly recommended edge-case
+}
+
+def benchmark_sorting_algorithm(merge_sort_func):
+    """
+    Runs the provided merge_sort_func against the test suite 
+    and a generated large dataset, measuring time in nanoseconds/microseconds.
+    """
+    # 1. Test standard edge cases
+    print("=== Edge Cases & Variety Tests ===")
+    for test_name, original_array in test_suites.items():
+        # Always deep copy to preserve the original test case array structure
+        array_to_sort = list(original_array)
+        print("Before Sorting: ", test_name, array_to_sort)
+        
+        start_ns = time.perf_counter_ns()
+        sorted_array = merge_sort_func(array_to_sort)
+        end_ns = time.perf_counter_ns()
+        
+        print("After Sorting: ", test_name, sorted_array)
+        
+        duration_ns = end_ns - start_ns
+        duration_us = duration_ns / 1000
+        
+        print(f"{test_name:<25} | Size: {len(original_array):<3} | Time: {duration_ns:,} ns ({duration_us:.2f} μs)")
+
+    # 2. Test large-scale random data arrays
+    print("\n=== Large Scale Stress Tests ===")
+    large_sizes = [10**3, 10**4, 10**5, 10**6] # You can append 10**6 based on your system memory limits
+    
+    for size in large_sizes:
+        large_array = generate_large_array(size)
+        
+        start_ns = time.perf_counter_ns()
+        _ = merge_sort_func(large_array)
+        end_ns = time.perf_counter_ns()
+        
+        duration_ns = end_ns - start_ns
+        duration_us = duration_ns / 1_000
+        duration_ms = duration_ns / 1_000_000
+        
+        print(f"Random Array (10^{int(len(str(size))-1)})  | Size: {size:<7,} | Time: {duration_ns:,} ns ({duration_us:,.2f} μs / {duration_ms:.4f} ms)")
